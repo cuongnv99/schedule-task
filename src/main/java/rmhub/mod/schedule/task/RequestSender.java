@@ -1,18 +1,19 @@
 package rmhub.mod.schedule.task;
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import rmhub.mod.schedule.constant.ScheduleConstant;
 import rmhub.mod.schedule.dto.ScheduleConfigDto;
 
+import javax.annotation.Resource;
+
 @Component
 @Log4j2
 public class RequestSender {
 
-  @Autowired
+  @Resource
   private RestTemplate restTemplate;
 
   public String sendRequest(ScheduleConfigDto configDto) {
