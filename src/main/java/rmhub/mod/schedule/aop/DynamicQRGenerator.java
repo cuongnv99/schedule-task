@@ -5,12 +5,17 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public class DynamicQRGenerator {
     // Dịch vụ chuyển tiền nhanh NAPAS247 đến tài khoản
@@ -41,11 +46,11 @@ public class DynamicQRGenerator {
         //"00": Đây là mã định danh cho trường Acquirer ID.
         //getLengthAndValue(NapasBank.BIDV.getAcquirerId()): Phương thức này sẽ lấy giá trị của Acquirer ID cho ngân hàng BIDV từ đối tượng NapasBank.BIDV,
         // sau đó tính độ dài của giá trị và kết hợp với giá trị thực tế của Acquirer ID.
-        String acquirerId = "00" + getLengthAndValue(NapasBank.MSBANK.getAcquirerId()); // Acquirer ID
+        String acquirerId = "00" + getLengthAndValue(NapasBank.BIDV.getAcquirerId()); // Acquirer ID
         //"01": Đây là mã định danh cho trường Consumer ID, chỉ ra rằng phần tiếp theo sẽ là mã định danh của người tiêu dùng.
         //getLengthAndValue("12010006991869"): Hàm getLengthAndValue lấy giá trị của Consumer ID (trong trường hợp này là "12010006991869")
         // và trả về độ dài của giá trị này, kết hợp với giá trị thực tế.
-        String consumerId = "01" + getLengthAndValue("0705522899"); // Consumer ID
+        String consumerId = "01" + getLengthAndValue("12010006991869"); // Consumer ID
         //"02": Đây là mã định danh cho Mã dịch vụ. Trường này chỉ ra rằng phần tiếp theo trong mã QR sẽ là mã dịch vụ.
         //getLengthAndValue("QRIBFTTA"): Hàm getLengthAndValue sẽ lấy giá trị của Mã dịch vụ (trong trường hợp này là "QRIBFTTA")
         // và trả về độ dài của giá trị này, kết hợp với giá trị thực tế của mã dịch vụ.
@@ -88,13 +93,21 @@ public class DynamicQRGenerator {
         String crc = calculateCRC(qrDataWithoutCRC);
 
         // Chuỗi QR code hoàn chỉnh có CRC
-//
-//        String qrDataWithoutCRC = "00020101021238580010A000000727012700069704180114120100069918690208QRIBFTTA530370454061800005802VN62340107NPS68690819thanh toan don hang63";
-//        String crc = calculateCRC(qrDataWithoutCRC);
         String qrDataWithCRC = qrDataWithoutCRC + crc;
         System.out.println("Generated QR Code Data: " + qrDataWithCRC);
+
+//        String qrDataWithCRC = "Your_QR_Data_Here";
+        String filePath = "dynamic_qr_with_icon.png";
+        String iconPath = "tienbip.png"; // Đường dẫn đến file icon
+
         DynamicQRGenerator generator = new DynamicQRGenerator();
-        generator.generateQrCode(qrDataWithCRC, "dynamicxxx.png");
+        generator.generateQrCodeWithColorIcon(qrDataWithCRC, filePath, iconPath);
+
+        System.out.println("QR Code with icon generated at: " + filePath);
+
+
+//        DynamicQRGenerator generator = new DynamicQRGenerator();
+//        generator.generateQrCodeWithIcon(qrDataWithCRC, "dynamicxxx.png");
     }
 
     // Hàm phụ để tính độ dài và nối với giá trị
@@ -124,26 +137,156 @@ public class DynamicQRGenerator {
         return String.format("%04X", crc); // Return as 4-digit hex
     }
 
-    public void generateQrCode(String content, String filePath) throws Exception {
-        int width = 300;
-        int height = 300;
+//    public void generateQrCode(String content, String filePath) throws Exception {
+//        int width = 300;
+//        int height = 300;
+//
+//        Map<EncodeHintType, Object> hints = new HashMap<>();
+//        hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H);
+//
+//        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+//        BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+//
+//        // Ensure the directory exists
+//        File file = new File(filePath);
+//        File parentDir = file.getParentFile();
+//        if (parentDir != null && !parentDir.exists()) {
+//            parentDir.mkdirs();
+//        }
+//
+//        Path path = file.toPath();
+//        MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
+//    }
 
-        Map<EncodeHintType, Object> hints = new HashMap<>();
-        hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H);
+//    public void generateQrCodeWithIcon(String content, String filePath, String iconPath) throws Exception {
+//        int width = 300;
+//        int height = 300;
+//
+//        // Tạo mã QR
+//        Map<EncodeHintType, Object> hints = new HashMap<>();
+//        hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H);
+//
+//        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+//        BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+//
+//        // Chuyển đổi BitMatrix thành BufferedImage
+//        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+//
+//        // Tải icon
+//        BufferedImage icon = ImageIO.read(new File(iconPath));
+//
+//        // Điều chỉnh kích thước của icon
+//        int iconWidth = qrImage.getWidth() / 5;  // Icon chiếm 1/5 kích thước mã QR
+//        int iconHeight = qrImage.getHeight() / 5;
+//        Image scaledIcon = icon.getScaledInstance(iconWidth, iconHeight, Image.SCALE_SMOOTH);
+//
+//        // Vẽ icon lên mã QR
+//        Graphics2D graphics = qrImage.createGraphics();
+//        int centerX = (qrImage.getWidth() - iconWidth) / 2; // Xác định vị trí trung tâm
+//        int centerY = (qrImage.getHeight() - iconHeight) / 2;
+//        graphics.drawImage(scaledIcon, centerX, centerY, null);
+//        graphics.dispose();
+//
+//        // Đảm bảo thư mục lưu trữ tồn tại
+//        File file = new File(filePath);
+//        File parentDir = file.getParentFile();
+//        if (parentDir != null && !parentDir.exists()) {
+//            parentDir.mkdirs();
+//        }
+//
+//        // Ghi ảnh có chứa icon vào file
+//        ImageIO.write(qrImage, "PNG", file);
+//    }
 
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+//    public void generateQrCodeWithColorIcon(String content, String filePath, String iconPath) throws Exception {
+//        int width = 300;
+//        int height = 300;
+//
+//        // Tạo mã QR
+//        Map<EncodeHintType, Object> hints = new HashMap<>();
+//        hints.put(EncodeHintType.ERROR_CORRECTION, com.google.zxing.qrcode.decoder.ErrorCorrectionLevel.H);
+//
+//        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+//        BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+//
+//        // Chuyển đổi BitMatrix thành BufferedImage
+//        BufferedImage qrImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+//
+//        // Tải biểu tượng (icon) từ file
+//        BufferedImage icon = ImageIO.read(new File(iconPath));
+//
+//        // Tính toán kích thước icon để chèn vào trung tâm mã QR
+//        int iconWidth = qrImage.getWidth() / 5;  // Icon chiếm 1/5 kích thước mã QR
+//        int iconHeight = qrImage.getHeight() / 5;
+//
+//        // Chỉnh kích thước icon
+//        Image scaledIcon = icon.getScaledInstance(iconWidth, iconHeight, Image.SCALE_SMOOTH);
+//        BufferedImage coloredIcon = new BufferedImage(iconWidth, iconHeight, BufferedImage.TYPE_INT_ARGB);
+//        Graphics2D g2dIcon = coloredIcon.createGraphics();
+//        g2dIcon.drawImage(scaledIcon, 0, 0, null);
+//        g2dIcon.dispose();
+//
+//        // Vẽ icon vào giữa mã QR
+//        Graphics2D graphics = qrImage.createGraphics();
+//        graphics.setComposite(AlphaComposite.SrcOver); // Đảm bảo giữ màu icon
+//        int centerX = (qrImage.getWidth() - iconWidth) / 2; // Tọa độ X trung tâm
+//        int centerY = (qrImage.getHeight() - iconHeight) / 2; // Tọa độ Y trung tâm
+//        graphics.drawImage(coloredIcon, centerX, centerY, null);
+//        graphics.dispose();
+//
+//        // Đảm bảo thư mục lưu trữ tồn tại
+//        File file = new File(filePath);
+//        File parentDir = file.getParentFile();
+//        if (parentDir != null && !parentDir.exists()) {
+//            parentDir.mkdirs();
+//        }
+//
+//        // Lưu mã QR với icon vào file
+//        ImageIO.write(qrImage, "PNG", file);
+//    }
+public void generateQrCodeWithColorIcon(String content, String filePath, String iconPath) throws Exception {
+    int width = 300;
+    int height = 300;
 
-        // Ensure the directory exists
-        File file = new File(filePath);
-        File parentDir = file.getParentFile();
-        if (parentDir != null && !parentDir.exists()) {
-            parentDir.mkdirs();
+    // Tạo mã QR
+    Map<EncodeHintType, Object> hints = new HashMap<>();
+    hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+
+    QRCodeWriter qrCodeWriter = new QRCodeWriter();
+    BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
+
+    // Chuyển BitMatrix thành BufferedImage hỗ trợ màu
+    BufferedImage qrImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            qrImage.setRGB(x, y, bitMatrix.get(x, y) ? Color.BLACK.getRGB() : Color.WHITE.getRGB());
         }
-
-        Path path = file.toPath();
-        MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
     }
+
+    // Tải biểu tượng (icon) và đảm bảo định dạng hỗ trợ màu
+    BufferedImage icon = ImageIO.read(new File(iconPath));
+    if (icon.getType() != BufferedImage.TYPE_INT_ARGB) {
+        BufferedImage temp = new BufferedImage(icon.getWidth(), icon.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = temp.createGraphics();
+        g2d.drawImage(icon, 0, 0, null);
+        g2d.dispose();
+        icon = temp;
+    }
+
+    // Tính toán kích thước và chèn biểu tượng
+    int iconWidth = qrImage.getWidth() / 5;  // Icon chiếm 1/5 mã QR
+    int iconHeight = qrImage.getHeight() / 5;
+    int centerX = (qrImage.getWidth() - iconWidth) / 2;
+    int centerY = (qrImage.getHeight() - iconHeight) / 2;
+
+    Graphics2D graphics = qrImage.createGraphics();
+    graphics.setComposite(AlphaComposite.SrcOver); // Hỗ trợ màu và độ trong suốt
+    graphics.drawImage(icon.getScaledInstance(iconWidth, iconHeight, Image.SCALE_SMOOTH), centerX, centerY, null);
+    graphics.dispose();
+
+    // Lưu mã QR với biểu tượng
+    ImageIO.write(qrImage, "PNG", new File(filePath));
+}
 
 
 }
