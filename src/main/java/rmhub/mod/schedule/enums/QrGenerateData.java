@@ -1,6 +1,9 @@
-package rmhub.mod.schedule.aop;
+package rmhub.mod.schedule.enums;
 
-public enum NapasBank {
+import lombok.Getter;
+
+@Getter
+public enum QrGenerateData {
     VIETCOMBANK("Vietcombank", "970436"),
     VIETINBANK("VietinBank", "970415"),
     BIDV("BIDV", "970418"),
@@ -28,26 +31,18 @@ public enum NapasBank {
     private final String bankName;
     private final String acquirerId;
 
-    NapasBank(String bankName, String acquirerId) {
+    QrGenerateData(String bankName, String acquirerId) {
         this.bankName = bankName;
         this.acquirerId = acquirerId;
     }
 
-    public String getBankName() {
-        return bankName;
-    }
-
-    public String getAcquirerId() {
-        return acquirerId;
-    }
-
-    public static NapasBank fromAcquirerId(String acquirerId) {
-        for (NapasBank bank : values()) {
+    public static QrGenerateData fromAcquirerId(String acquirerId) {
+        for (QrGenerateData bank : values()) {
             if (bank.acquirerId.equals(acquirerId)) {
                 return bank;
             }
         }
-        return null; // hoặc có thể ném ngoại lệ nếu không tìm thấy
+        return null;
     }
 
     @Override
